@@ -124,7 +124,7 @@ class Repository:
 
                 # TODO: split apart the lists and the rest of the data
 
-                # dump graph into a temp file
+                # dump graph into a turtle file
                 thisfile = self.file.format("dump", ontoData, projectCode, projectShortName)
                 self.download_graph(graph, thisfile)
 
@@ -150,6 +150,45 @@ class Repository:
         drop_all_response.raise_for_status()
         self.logger.info("Emptied repository.")
 
+    def merge(self):
+        # back-up created a set of files {base,dump}_{data,ontology}_{project code}_{project short name}.ttl
+        # all the data are uploaded separetely per project
+        #
+        # create the master graph
+        base_graph = rdflib.Dataset()
+
+        # get the files in the data folder, filter the ones starting by `base`
+        for filename in fnmatch.filter(os.listdir(self.config.folder), "base*.ttl"):
+            # file names look like: dump_data_0001_anything.ttl
+            # split to get the project's code `0001` and name `anything`
+            elements = filename.split('_')
+            project_ex = elements.pop()  # anything.ttl
+            project = project_ex.split('.').pop(0)  # anything
+            code = elements.pop()  # 0001 or -
+            data = elements.pop()  # data or ontology
+
+            # general case
+            uri = "http://www.knora.org/{}/{}/{}".format(data, code, project)
+            # case of graph without a project
+            if code == '-':
+                # uri shortened
+                uri = "http://www.knora.org/{}/{}".format(data, project)
+
+            prefix = "{}-{}".format(project, data)
+
+            self.logger.debug(
+                "merging {} as prefix {} in graph {}".format(filename, prefix, uri))
+
+            graph_parsed = base_graph.graph(uri)
+            graph_parsed.parse(
+                source="{}/{}".format(self.config.folder, filename), format="turtle")
+
+            base_graph.namespace_manager.bind(
+                prefix=prefix, namespace=uri, override=True, replace=True)
+
+        # finally
+        base_graph.serialize(destination=os.getcwd() +
+                             "/data/base.trig", format="trig")
 
     def restore(self):
         url = "{}/repositories/{}/statements".format(self.config.target.server, self.config.target.repoId)
