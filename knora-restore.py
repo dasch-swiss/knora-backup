@@ -19,6 +19,8 @@ def parseArgs():
     parser.add_argument("-q", "--quiet", help="no confirmation check", action='store_true', default=False)
     parser.add_argument("-v", "--verbose", help="increased verbosity", action='store_true', default=False)
     parser.add_argument("-d", "--dataonly", help="upload data (skip base and ontologies)", action='store_true', default=False)
+    parser.add_argument("-m", "--merge", help="merge base ttl files into trig before restore", action='store_true', default=False)
+    parser.add_argument("-s", "--store", help="store: wipe-out and restore", action='store_true', default=False)
 
     args = parser.parse_args()
 
@@ -35,7 +37,11 @@ def main():
     config = Config.Config(args)
 
     repository = Repository.Repository(config)
-    repository.restore()
+
+    if (args.merge):
+        repository.merge()
+    if (args.store):
+        repository.restore()
 
 
 if __name__ == "__main__":
