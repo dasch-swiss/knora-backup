@@ -1,23 +1,20 @@
-# knora-backup
+#  knora-backup
 
 backup and restore a knora based tripple store.
 
 ## a word on back-ups
 
-### usual ways
+the usual ways to back-up are:
 
-#### vendor dump procedure
+- vendor dump procedure
+  The most straightforward way to back-up is to dump the whole repo as instructed by the vendor.  
+  For examplerer: Instructions for [graphdb](http://graphdb.ontotext.com/documentation/free/backing-up-and-recovering-repo.html?highlight=dump).
+- knora project's AllData
+  In order to extract a given project, knora has a dedicated route: [/admin/projects/iri/<identifier>/AllData](https://docs.knora.org/paradox/03-apis/api-admin/projects.html#dump-project-data-)
 
-The most straightforward way to back-up is to dump the whole repo as instructed by the vendor.  
-For examplerer: Instructions for [graphdb](http://graphdb.ontotext.com/documentation/free/backing-up-and-recovering-repo.html?highlight=dump).
 
-#### knora project's AllData
 
-In order to extract a given project, knora has a dedicated route: [/admin/projects/iri/<identifier>/AllData](https://docs.knora.org/paradox/03-apis/api-admin/projects.html#dump-project-data-)
-
-### this way
-
-In some cases, you might want to split projects:
+But in some cases, you might want to split projects:
 
 - debug a faulty repo
 - test on a part of the whole repo
@@ -25,35 +22,13 @@ In some cases, you might want to split projects:
 - mix and match different repos
 - edit turtle files
 
-this
-
 ## back-up
 
 This tool download each graph in a turtle file in the `data` subdirectory, leaves the project data as is and merge the rest in a single trig file:
 
-```mermaid
-graph LR
-	repo[(Christmas)] -->|dump each graph as a file| split{split}
-    split -->|projects data| data_mutex((" "))
-	split -->|knora base and projects' ontos| base_mutex((" "))
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcblx0cmVwb1soUmVwbyldIC0tPnxkdW1wIGVhY2ggZ3JhcGggYXMgYSBmaWxlfCBzcGxpdHtzcGxpdH1cbiAgICBzcGxpdCAtLT58cHJvamVjdHMgZGF0YXwgZGF0YV9tdXRleCgoXCIgXCIpKVxuXHRzcGxpdCAtLT58a25vcmEgYmFzZSBhbmQgcHJvamVjdHMnIG9udG9zfCBiYXNlX211dGV4KChcIiBcIikpXG5cbiAgICBzdWJncmFwaCBkYXRhLWZpbGVzXG4gICAgZGF0YV9tdXRleCAtLT4gZGF0YTFbcHJvamVjdCBkYXRhIGdyYXBoXVxuICAgIGRhdGFfbXV0ZXggLS0-IGRhdGEyW3Byb2plY3QgZGF0YSBncmFwaF1cbiAgICBlbmRcblxuICAgIHN1YmdyYXBoIGJhc2UtYW5kLW9udG9sb2dpZXNcbiAgICBiYXNlX211dGV4IC0tPiBvbnRvMVtiYXNlIGdyYXBoc11cbiAgICBiYXNlX211dGV4IC0tPiBvbnRvMltwcm9qZWN0IG9udG9sb2d5XVxuICAgIGJhc2VfbXV0ZXggLS0-IG9udG8zW3Byb2plY3Qgb250b2xvZ3ldXG5cbiAgICBvbnRvMSAtLT4gYmFzZVtiYXNlIHRyaWddXG4gICAgb250bzIgLS0-IGJhc2VcbiAgICBvbnRvMyAtLT4gYmFzZVxuICAgIGVuZFxuIiwibWVybWFpZCI6eyJ0aGVtZSI6ImRlZmF1bHQifX0)](https://mermaid-js.github.io/mermaid-live-editor/#/edit/eyJjb2RlIjoiZ3JhcGggTFJcblx0cmVwb1soUmVwbyldIC0tPnxkdW1wIGVhY2ggZ3JhcGggYXMgYSBmaWxlfCBzcGxpdHtzcGxpdH1cbiAgICBzcGxpdCAtLT58cHJvamVjdHMgZGF0YXwgZGF0YV9tdXRleCgoXCIgXCIpKVxuXHRzcGxpdCAtLT58a25vcmEgYmFzZSBhbmQgcHJvamVjdHMnIG9udG9zfCBiYXNlX211dGV4KChcIiBcIikpXG5cbiAgICBzdWJncmFwaCBkYXRhLWZpbGVzXG4gICAgZGF0YV9tdXRleCAtLT4gZGF0YTFbcHJvamVjdCBkYXRhIGdyYXBoXVxuICAgIGRhdGFfbXV0ZXggLS0-IGRhdGEyW3Byb2plY3QgZGF0YSBncmFwaF1cbiAgICBlbmRcblxuICAgIHN1YmdyYXBoIGJhc2UtYW5kLW9udG9sb2dpZXNcbiAgICBiYXNlX211dGV4IC0tPiBvbnRvMVtiYXNlIGdyYXBoc11cbiAgICBiYXNlX211dGV4IC0tPiBvbnRvMltwcm9qZWN0IG9udG9sb2d5XVxuICAgIGJhc2VfbXV0ZXggLS0-IG9udG8zW3Byb2plY3Qgb250b2xvZ3ldXG5cbiAgICBvbnRvMSAtLT4gYmFzZVtiYXNlIHRyaWddXG4gICAgb250bzIgLS0-IGJhc2VcbiAgICBvbnRvMyAtLT4gYmFzZVxuICAgIGVuZFxuIiwibWVybWFpZCI6eyJ0aGVtZSI6ImRlZmF1bHQifX0)
 
-    subgraph data-files
-    data_mutex --> data1[project data graph]
-    data_mutex --> data2[project data graph]
-    end
-
-    subgraph base-and-ontologies
-    base_mutex --> onto1[base graphs]
-    base_mutex --> onto2[project ontology]
-    base_mutex --> onto3[project ontology]
-
-    onto1 --> base[base trig]
-    onto2 --> base
-    onto3 --> base
-    end
-```
-
-
+*(note to maintainer: to edit this graph, click on it)*
 
 The result `data` folder looks like:
 
