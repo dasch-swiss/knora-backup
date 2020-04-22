@@ -2,9 +2,58 @@
 
 backup and restore a knora based tripple store.
 
+## a word on back-ups
+
+### usual ways
+
+#### vendor dump procedure
+
+The most straightforward way to back-up is to dump the whole repo as instructed by the vendor.  
+For examplerer: Instructions for [graphdb](http://graphdb.ontotext.com/documentation/free/backing-up-and-recovering-repo.html?highlight=dump).
+
+#### knora project's AllData
+
+In order to extract a given project, knora has a dedicated route: [/admin/projects/iri/<identifier>/AllData](https://docs.knora.org/paradox/03-apis/api-admin/projects.html#dump-project-data-)
+
+### this way
+
+In some cases, you might want to split projects:
+
+- debug a faulty repo
+- test on a part of the whole repo
+- reloading all but one project
+- mix and match different repos
+- edit turtle files
+
+this
+
 ## back-up
 
-This tool download each graph in a turtle file in the `data` subdirectory, leaves the project data as is and merge the rest in a single trig file.
+This tool download each graph in a turtle file in the `data` subdirectory, leaves the project data as is and merge the rest in a single trig file:
+
+```mermaid
+graph LR
+	repo[(Christmas)] -->|dump each graph as a file| split{split}
+    split -->|projects data| data_mutex((" "))
+	split -->|knora base and projects' ontos| base_mutex((" "))
+
+    subgraph data-files
+    data_mutex --> data1[project data graph]
+    data_mutex --> data2[project data graph]
+    end
+
+    subgraph base-and-ontologies
+    base_mutex --> onto1[base graphs]
+    base_mutex --> onto2[project ontology]
+    base_mutex --> onto3[project ontology]
+
+    onto1 --> base[base trig]
+    onto2 --> base
+    onto3 --> base
+    end
+```
+
+
 
 The result `data` folder looks like:
 
@@ -60,29 +109,6 @@ optional arguments:
   -q, --quiet           no confirmation check
   -v, --verbose         increased verbosity
 ```
-
-### usual ways
-
-#### vendor dump procedure
-
-The most straightforward way to back-up is to dump the whole repo as instructed by the vendor.  
-For examplerer: Instructions for [graphdb](http://graphdb.ontotext.com/documentation/free/backing-up-and-recovering-repo.html?highlight=dump).
-
-#### knora project's AllData
-
-In order to extract a given project, knora has a dedicated route: [/admin/projects/iri/<identifier>/AllData](https://docs.knora.org/paradox/03-apis/api-admin/projects.html#dump-project-data-)
-
-### this way
-
-In some cases, you might want to split projects:
-
-- debug a faulty repo
-- test on a part of the whole repo
-- reloading all but one project
-- mix and match different repos
-- edit turtle files
-
-this
 
 ## install
 
