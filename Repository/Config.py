@@ -6,11 +6,13 @@ import os
 Target = namedtuple('Target', ['server', 'repoId'])
 
 targets = dict(
+    local=Target('http://localhost:7200', 'knora-test'),
     localunil=Target('http://db-local.unil.ch:8888', 'knora-test'),
     junipero=Target('http://junipero.unil.ch:9200', 'knora-test'),
     sipipv=Target('http://db-sipipv.unil.ch', 'knora-test'),
     unil=Target('http://knora.unil.ch:7200', 'knora-prod')
 )
+
 
 class Config:
     """
@@ -50,6 +52,7 @@ def test():
 
     :return:
     """
+
 
 if __name__ == "__main__":
     test()

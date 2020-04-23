@@ -14,6 +14,7 @@ base_data_graphs = [
     "http://www.knora.org/data/standoff"
 ]
 
+
 class Repository:
     """
     interact with a DaSCH repository
@@ -29,7 +30,8 @@ class Repository:
         # current working directory
         self.cwd = os.getcwd()
         # work temp file
-        self.file = self.cwd + "/data/{}_{}_{}_{}.ttl"  # potential problem, it means that '_' should not be used in project's short name
+        # potential problem, it means that '_' should not be used in project's short name
+        self.file = self.cwd + "/data/{}_{}_{}_{}.ttl"
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.setLevel(logging.DEBUG)
 
@@ -50,7 +52,6 @@ class Repository:
 
         self.logger.debug("graphs: {}".format(graphs))
         return graphs
-
 
     def download_graph(self, graph, file):
         """
@@ -73,7 +74,7 @@ class Repository:
         self.logger.debug("headers {}".format(headers))
         self.logger.debug("params {}".format(params))
 
-        response =  requests.get(
+        response = requests.get(
             params=params,
             headers=headers,
             url="{}/repositories/{}/statements".format(self.config.target.server, self.config.target.repoId),
@@ -82,7 +83,6 @@ class Repository:
         with open(file, "wb") as downloaded_file:
             for chunk in response.iter_content(chunk_size=1024):
                 downloaded_file.write(chunk)
-
 
     def dump(self):
        # output trig file with base (knora base onto and data, permissions, admin)
@@ -130,7 +130,6 @@ class Repository:
 
         # finally
         base.serialize(destination=os.getcwd()+"/data/base.trig", format="trig")
-
 
     def wipe_out(self):
         # ask before wiping out the triple store
@@ -251,7 +250,6 @@ class Repository:
                                                 data=file_content)
                 upload_response.raise_for_status()
                 self.logger.info("uploaded {} in {:d}s".format(uri, int(time.time()-start)))
-
 
             self.logger.info("Updating Lucene index...")
 
