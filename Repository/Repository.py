@@ -31,7 +31,7 @@ class Repository:
         self.cwd = os.getcwd()
         # work temp file
         # potential problem, it means that '_' should not be used in project's short name
-        self.file = self.cwd + "/data/{}_{}_{}_{}.ttl"
+        self.file = self.cwd + "/" + self.config.folder + "/{}_{}_{}_{}.ttl"
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.setLevel(logging.DEBUG)
 
@@ -129,7 +129,7 @@ class Repository:
                 self.download_graph(graph, thisfile)
 
         # finally
-        base.serialize(destination=os.getcwd()+"/data/base.trig", format="trig")
+        base.serialize(destination="{}/{}/base.trig".format(os.getcwd(), self.config.folder), format="trig")
 
     def wipe_out(self):
         # ask before wiping out the triple store
@@ -186,8 +186,8 @@ class Repository:
                 prefix=prefix, namespace=uri, override=True, replace=True)
 
         # finally
-        base_graph.serialize(destination=os.getcwd() +
-                             "/data/base.trig", format="trig")
+        base_graph.serialize(destination="{}/{}/base.trig".format(os.getcwd(),self.config.folder),
+                             format="trig")
 
     def restore(self):
         url = "{}/repositories/{}/statements".format(self.config.target.server, self.config.target.repoId)
@@ -202,7 +202,7 @@ class Repository:
             start = time.time()
             self.logger.info("uploading base ontologies")
 
-            filename = os.getcwd()+"/data/base.trig"
+            filename = "{}/{}/base.trig".format(os.getcwd(),self.config.folder)
             self.logger.info("uploading {}".format(filename))
 
             # upload base
