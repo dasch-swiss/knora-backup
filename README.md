@@ -2,7 +2,7 @@
 
 backup and restore a knora based tripple store.
 
-## a word on back-ups
+# a word on back-ups
 
 the usual ways to back-up are:
 
@@ -22,9 +22,9 @@ But in some cases, you might want to split projects:
 - mix and match different repos
 - edit turtle files
 
-## back-up
+# back-up
 
-### behaviour
+## behaviour
 
 This tool download each graph in a turtle file in the `data` subdirectory, leaves the project data as is and merge the rest in a single trig file:
 
@@ -32,7 +32,7 @@ This tool download each graph in a turtle file in the `data` subdirectory, leave
 
 *(note to maintainer: to edit this graph, click on it)*
 
-### output
+## output
 
 The result `data` folder looks like:
 
@@ -55,7 +55,7 @@ dump_data_0001_anything.ttl
 dump_data_<project code>_<project short name>.ttl
 ```
 
-### invocation
+## invocation
 
 example:
 
@@ -89,9 +89,9 @@ optional arguments:
   -v, --verbose         increased verbosity
 ```
 
-## restore
+# restore
 
-### behavior
+## behavior
 
 Upload the dumped files to the tripplestore.
 
@@ -99,11 +99,11 @@ Optionnally, recreate the trig file from the base and ontology files:
 
 [![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcblxuICAgIHN1YmdyYXBoIGRhdGEtZmlsZXNcbiAgICBkYXRhMVtwcm9qZWN0IGRhdGEgZ3JhcGhdXG4gICAgZGF0YTJbcHJvamVjdCBkYXRhIGdyYXBoXVxuICAgIGVuZFxuXG4gICAgc3ViZ3JhcGggb3B0aW9uYWwtbWVyZ2VcbiAgICBvbnRvMVtiYXNlIGdyYXBoc10gLS0-IG1lcmdlKChtZXJnZSkpXG4gICAgb250bzJbcHJvamVjdCBvbnRvbG9neV0gLS0-IG1lcmdlXG4gICAgb250bzNbcHJvamVjdCBvbnRvbG9neV0gLS0-IG1lcmdlXG5cbiAgICBlbmRcblxuICAgIHN1YmdyYXBoIGJhc2UtYW5kLW9udG9sb2dpZXNcbiAgICBtZXJnZSAtLT4gYmFzZVtiYXNlIHRyaWddXG4gICAgZW5kXG5cbiAgICBiYXNlIC0tPiByZXN0b3JlXG4gICAgZGF0YTEgLS0-IHJlc3RvcmVcbiAgICBkYXRhMiAtLT4gcmVzdG9yZVxuXG5cdHJlc3RvcmUoKHJlc3RvcmUpKSAtLT4gcmVwb1soUmVwbyldIiwibWVybWFpZCI6eyJ0aGVtZSI6ImRlZmF1bHQifSwidXBkYXRlRWRpdG9yIjpmYWxzZX0)](https://mermaid-js.github.io/mermaid-live-editor/#/edit/eyJjb2RlIjoiZ3JhcGggTFJcblxuICAgIHN1YmdyYXBoIGRhdGEtZmlsZXNcbiAgICBkYXRhMVtwcm9qZWN0IGRhdGEgZ3JhcGhdXG4gICAgZGF0YTJbcHJvamVjdCBkYXRhIGdyYXBoXVxuICAgIGVuZFxuXG4gICAgc3ViZ3JhcGggb3B0aW9uYWwtbWVyZ2VcbiAgICBvbnRvMVtiYXNlIGdyYXBoc10gLS0-IG1lcmdlKChtZXJnZSkpXG4gICAgb250bzJbcHJvamVjdCBvbnRvbG9neV0gLS0-IG1lcmdlXG4gICAgb250bzNbcHJvamVjdCBvbnRvbG9neV0gLS0-IG1lcmdlXG5cbiAgICBlbmRcblxuICAgIHN1YmdyYXBoIGJhc2UtYW5kLW9udG9sb2dpZXNcbiAgICBtZXJnZSAtLT4gYmFzZVtiYXNlIHRyaWddXG4gICAgZW5kXG5cbiAgICBiYXNlIC0tPiByZXN0b3JlXG4gICAgZGF0YTEgLS0-IHJlc3RvcmVcbiAgICBkYXRhMiAtLT4gcmVzdG9yZVxuXG5cdHJlc3RvcmUoKHJlc3RvcmUpKSAtLT4gcmVwb1soUmVwbyldIiwibWVybWFpZCI6eyJ0aGVtZSI6ImRlZmF1bHQifSwidXBkYXRlRWRpdG9yIjpmYWxzZX0)
 
-### output
+## output
 
 a restored tripplestore
 
-### invocation
+## invocation
 
 example:
 
@@ -140,7 +140,25 @@ optional arguments:
   -v, --verbose         increased verbosity
 ```
 
-## install
+## before and after restoring a repo
+
+### before
+
+The restore operation by-passes `knora-api` by connecting directly to the tripplestore.  
+
+So it is best to stop `knora-api` before restoring the repo. 
+
+### after
+
+Once the restore operation is over, you will then need to empty the redis cache:
+
+```
+docker exec <redis container> redis-cli FLUSHALL
+```
+
+and restart `knora-api`.
+
+# install `knora-backup`
 
 - knora-backup requires python 3
 
