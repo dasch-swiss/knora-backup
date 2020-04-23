@@ -264,6 +264,22 @@ class Repository:
             update_lucene_index_response.raise_for_status()
             self.logger.info("Updated Lucene index.")
 
+    def basicStats(self):
+        url = "{}/repositories/{}".format(self.config.target.server, self.config.target.repoId)
+        sparql = """query=
+            PREFIX knora-base: <http://www.knora.org/ontology/knora-base#>
+            select ?project (count(distinct ?resource) as ?count) where { 
+                ?resource a knora-base:Resource .
+                ?resource knora-base:attachedToProject ?project .
+            } 
+            group by ?project
+        """
+        stats_resonse = requests.post(url,
+                                    headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
+                                    auth=(self.config.user, self.config.pwd),
+                                    data=sparql)
+        stats_resonse.raise_for_status()
+        self.logger.info("number of Resource instances per graph\n" + stats_resonse.text)
 
 def test():
     pass

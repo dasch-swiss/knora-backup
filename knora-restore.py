@@ -43,6 +43,7 @@ def main():
         repository.merge()
     if (args.store):
         repository.restore()
+        repository.basicStats()
 
 
 if __name__ == "__main__":

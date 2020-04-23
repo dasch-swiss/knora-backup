@@ -40,6 +40,7 @@ def main():
 
     repository = Repository.Repository(config)
     repository.dump()
+    repository.basicStats()
 
 
 if __name__ == "__main__":
