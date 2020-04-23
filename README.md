@@ -105,6 +105,41 @@ a restored tripplestore
 
 ### invocation
 
+example:
+
+```bash
+python knora-restore.py --graphdb http://localhost:7200 --repoId knora-test --user user
+```
+
+usage:
+
+```
+usage: knora-restore.py [-h] [-t TARGET] [-g GRAPHDB] [-r REPOID] -u USER
+                        [-p PWD] [-f FOLDER] [-d] [-m] [-s] [-q] [-v]
+
+back-up and restore tool.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t TARGET, --target TARGET
+                        target setup (utility feature to set `graphdb` and
+                        `repoId` at once, requires editing config file)
+  -g GRAPHDB, --graphdb GRAPHDB
+                        Server running GraphDB repository
+  -r REPOID, --repoId REPOID
+                        name of the repoId to dump
+  -u USER, --user USER  GraphDB username (add gibberish if none)
+  -p PWD, --pwd PWD     GraphDB password (if not provided, will prompt for
+                        password)
+  -f FOLDER, --folder FOLDER
+                        data folder to write dump files (default: `data`)
+  -d, --dataonly        upload data (skip base and ontologies)
+  -m, --merge           merge base ttl files into trig before restore
+  -s, --store           store: wipe-out and restore
+  -q, --quiet           no confirmation check
+  -v, --verbose         increased verbosity
+```
+
 ## install
 
 - knora-backup requires python 3
