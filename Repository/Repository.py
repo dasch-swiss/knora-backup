@@ -14,6 +14,7 @@ base_data_graphs = [
     "http://www.knora.org/data/standoff"
 ]
 
+
 class Repository:
     """
     interact with a DaSCH repository
@@ -29,7 +30,8 @@ class Repository:
         # current working directory
         self.cwd = os.getcwd()
         # work temp file
-        self.file = self.cwd + "/data/{}_{}_{}_{}.ttl"  # potential problem, it means that '_' should not be used in project's short name
+        # potential problem, it means that '_' should not be used in project's short name
+        self.file = self.cwd + "/" + self.config.folder + "/{}_{}_{}_{}.ttl"
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.setLevel(logging.DEBUG)
 
@@ -50,7 +52,6 @@ class Repository:
 
         self.logger.debug("graphs: {}".format(graphs))
         return graphs
-
 
     def download_graph(self, graph, file):
         """
@@ -73,7 +74,7 @@ class Repository:
         self.logger.debug("headers {}".format(headers))
         self.logger.debug("params {}".format(params))
 
-        response =  requests.get(
+        response = requests.get(
             params=params,
             headers=headers,
             url="{}/repositories/{}/statements".format(self.config.target.server, self.config.target.repoId),
@@ -82,7 +83,6 @@ class Repository:
         with open(file, "wb") as downloaded_file:
             for chunk in response.iter_content(chunk_size=1024):
                 downloaded_file.write(chunk)
-
 
     def dump(self):
        # output trig file with base (knora base onto and data, permissions, admin)
@@ -124,13 +124,12 @@ class Repository:
 
                 # TODO: split apart the lists and the rest of the data
 
-                # dump graph into a temp file
+                # dump graph into a turtle file
                 thisfile = self.file.format("dump", ontoData, projectCode, projectShortName)
                 self.download_graph(graph, thisfile)
 
         # finally
-        base.serialize(destination=os.getcwd()+"/data/base.trig", format="trig")
-
+        base.serialize(destination="{}/{}/base.trig".format(os.getcwd(), self.config.folder), format="trig")
 
     def wipe_out(self):
         # ask before wiping out the triple store
@@ -150,6 +149,45 @@ class Repository:
         drop_all_response.raise_for_status()
         self.logger.info("Emptied repository.")
 
+    def merge(self):
+        # back-up created a set of files {base,dump}_{data,ontology}_{project code}_{project short name}.ttl
+        # all the data are uploaded separetely per project
+        #
+        # create the master graph
+        base_graph = rdflib.Dataset()
+
+        # get the files in the data folder, filter the ones starting by `base`
+        for filename in fnmatch.filter(os.listdir(self.config.folder), "base*.ttl"):
+            # file names look like: dump_data_0001_anything.ttl
+            # split to get the project's code `0001` and name `anything`
+            elements = filename.split('_')
+            project_ex = elements.pop()  # anything.ttl
+            project = project_ex.split('.').pop(0)  # anything
+            code = elements.pop()  # 0001 or -
+            data = elements.pop()  # data or ontology
+
+            # general case
+            uri = "http://www.knora.org/{}/{}/{}".format(data, code, project)
+            # case of graph without a project
+            if code == '-':
+                # uri shortened
+                uri = "http://www.knora.org/{}/{}".format(data, project)
+
+            prefix = "{}-{}".format(project, data)
+
+            self.logger.debug(
+                "merging {} as prefix {} in graph {}".format(filename, prefix, uri))
+
+            graph_parsed = base_graph.graph(uri)
+            graph_parsed.parse(
+                source="{}/{}".format(self.config.folder, filename), format="turtle")
+
+            base_graph.namespace_manager.bind(
+                prefix=prefix, namespace=uri, override=True, replace=True)
+
+        # finally
+        base_graph.serialize(destination="{}/{}/base.trig".format(os.getcwd(),self.config.folder),
+                             format="trig")
 
     def restore(self):
         url = "{}/repositories/{}/statements".format(self.config.target.server, self.config.target.repoId)
@@ -164,7 +202,7 @@ class Repository:
             start = time.time()
             self.logger.info("uploading base ontologies")
 
-            filename = os.getcwd()+"/data/base.trig"
+            filename = "{}/{}/base.trig".format(os.getcwd(),self.config.folder)
             self.logger.info("uploading {}".format(filename))
 
             # upload base
@@ -213,7 +251,6 @@ class Repository:
                 upload_response.raise_for_status()
                 self.logger.info("uploaded {} in {:d}s".format(uri, int(time.time()-start)))
 
-
             self.logger.info("Updating Lucene index...")
 
             sparql = """
@@ -227,6 +264,22 @@ class Repository:
             update_lucene_index_response.raise_for_status()
             self.logger.info("Updated Lucene index.")
 
+    def basicStats(self):
+        url = "{}/repositories/{}".format(self.config.target.server, self.config.target.repoId)
+        sparql = """query=
+            PREFIX knora-base: <http://www.knora.org/ontology/knora-base#>
+            select ?project (count(distinct ?resource) as ?count) where { 
+                ?resource a knora-base:Resource .
+                ?resource knora-base:attachedToProject ?project .
+            } 
+            group by ?project
+        """
+        stats_resonse = requests.post(url,
+                                    headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
+                                    auth=(self.config.user, self.config.pwd),
+                                    data=sparql)
+        stats_resonse.raise_for_status()
+        self.logger.info("number of Resource instances per graph\n" + stats_resonse.text)
 
 def test():
     pass
